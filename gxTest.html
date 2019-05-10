@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>test1</title>
 </head>
 <body>
 <script src="https://cdn.bootcss.com/jquery/1.9.1/jquery.min.js"></script>
@@ -14,16 +14,16 @@
 <!-- <script src="./audio_test/Recorder/recorder.mp3.min.js"></script> -->
 
 
-<script src="./recorder.wav.min.js"></script> 
-<!-- <script src="./audio_test/Recorder/src/recorder-core.js"></script>
-<script src="./audio_test/Recorder/src/extensions/waveview.js"></script>
-<script src="./audio_test/Recorder/src/engine/wav.js"></script> -->
+<!-- <script src="./audio_test/Recorder/recorder.wav.min.js"></script>  -->
+<script src="./src/recorder-core.js"></script>
+<script src="./src/extensions/waveview.js"></script>
+<script src="./src/engine/wav.js"></script>
 <input type="button" onclick="startRec()" value="开始录音">
 <hr>
 <!-- <input type="button" onclick="playRec()" value="结束并播放"> -->
 <input type="button" onclick="uploadRec()" value="结束并上传">
-
 <script>
+
 var rec;
 function startRec(){
 	// rec=Recorder();//使用默认配置，mp3格式
@@ -48,6 +48,9 @@ function startRec(){
 function uploadRec(){
 	//停止录音，得到了录音文件blob二进制对象，想干嘛就干嘛
 	rec.stop(function(blob,duration){
+		console.log('blob', blob);
+		console.log('888', URL.createObjectURL(blob));
+		console.log('set',$.extend({},rec.set))
 		/*
 		blob文件对象，可以用FileReader读取出内容
 		，或者用FormData上传，本例直接上传二进制文件
@@ -77,6 +80,7 @@ function recdown64(blob){
 	reader.onloadend = function() {
 		console.log(reader.result);
 	};
+	// 开始读取指定的Blob中的内容。一旦完成，result属性中将包含一个data: URL格式的字符串以表示所读取文件的内容。
 	reader.readAsDataURL(blob);
 };
 

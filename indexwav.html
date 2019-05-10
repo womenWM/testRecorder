@@ -1,0 +1,163 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<title>Recorder测试</title>
+</head>
+<style>
+    body{
+      word-wrap: break-word;
+    }
+    pre{
+      white-space:pre-wrap;
+    }
+    .pd{
+      padding:0 0 6px 0;
+    }
+    .btns button{
+      padding: 5px 10px;
+    }
+		.navItem{
+			display:inline-block;
+			width:40%;
+			max-width:300px;
+			margin-right:20px;
+			vertical-align: top;
+			background:#eee;
+			border-bottom: 5px solid #ccc;
+			color:#666;
+			text-decoration:none;
+			border-radius: 8px;
+			padding: 0 5px 3px;
+		}
+		.navItem.slc{
+			border-bottom: 5px solid #0B1;
+			color:#000;
+		}
+		.navItem:hover{
+			color:#d44;
+		}
+		.navTitle{
+			text-align: center;
+			font-size:18px;
+			font-weight: bold;
+		}
+		.navDesc{
+			font-size:12px;
+		}
+</style>
+<body>
+
+<!--加载核心库，其他类型支持库在下面根据用户点击选择加载-->
+<script src="src/recorder-core.js"></script>
+<!--加载可选扩展库-->
+<script src="src/extensions/waveview.js"></script>
+<script>
+//兼容环境
+var PageLM="2019-4-18 09:31:26";
+function BuildHtml(html,o,notEncode,loop){return o||(o={}),html=(null==html?"":html+"").replace(/\{(fn:)?(:)?(.+?)\}/gi,function(a,b,c,code){try{var v=eval(b?code:"o."+code);return v=void 0===v?"":v+"",c||notEncode?v:v}catch(e){return console.log("BuildHtml Fail",a+"\n"+e.stack),""}}),loop&&/\{(fn:)?(.+?)\}/.test(html)&&(html=BuildHtml(html,o,notEncode,loop)),html};
+function RandomKey(){
+	return "randomkey"+(RandomKey.idx++);
+};
+RandomKey.idx=0;
+</script>
+<script src="https://cdn.bootcss.com/jquery/1.9.1/jquery.min.js"></script>
+<script src="./src/engine/wav.js"></script>
+
+<!-- begin 开始copy源码 -->
+<div>
+	<div class="pd">
+		比特率: <input type="text" class="bit" value="16"> kbps，越大音质越好
+	</div>
+	<div class="pd">
+		采样率: <input type="text" class="sample" value="16000"> hz，越大细节越丰富
+	</div>
+	<div class="pd btns">
+		<button onclick="recstart()">录制</button>
+		<button onclick="recstop()">停止</button>
+	</div>
+	<div class="pd recpower">
+		<div style="height:40px;width:300px;background:#999;position:relative;">
+			<div class="recpowerx" style="height:40px;background:#0B1;position:absolute;"></div>
+			<div class="recpowert" style="padding-left:50px; line-height:40px; position: relative;"></div>
+		</div>
+	</div>
+	<div class="pd">
+		<input type="text" class="bits" value="8 to 96 step 8">kbps 测试音质用的，除比特率外其他参数可调整
+	</div>
+	<div class="pd">
+		<div style="height:100px;width:300px;border:1px solid #ccc;box-sizing: border-box;display:inline-block" class="recwave"></div>
+		<input type="checkbox" class="recwaveSet" checked>
+	</div>
+	
+	<hr>
+	<audio class="recPlay" style="width:100%"></audio>
+</div>
+
+<script>
+var rec;
+function recstart(){
+  var type='wav';
+	var bit=+$(".bit").val();
+	var sample=+$(".sample").val();
+	var wave,waveSet=$(".recwaveSet")[0].checked;
+	rec=Recorder({
+		type:type
+		,bitRate:bit
+		,sampleRate:sample
+		,onProcess:function(buffers,level,time,sampleRate){
+			$(".recpowerx").css("width",level+"%");
+			$(".recpowert").html(time+"/"+level);
+			
+			waveSet && wave.input(buffers[buffers.length-1],level,sampleRate);
+		}
+	});
+	rec.open(function(){
+		// reclog("已打开:"+type+" "+bit+"kbps");
+		
+    wave=Recorder.WaveView({elem:".recwave"});
+    rec.start();
+		// reclog("录制中...");
+	},function(e,isUserNotAllow){
+		// reclog((isUserNotAllow?"UserNotAllow，":"")+"打开失败："+e);
+	});
+};
+var recblob={};
+function recstop(batCall){
+	if(rec){
+		if(!batCall){
+			// reclog("正在编码"+rec.set.type+"...");
+		};
+		var t1=Date.now();
+		rec.stop(function(blob,time){
+      console.log('blob', blob);
+      recdown64(blob);
+			var id=RandomKey(16);
+			recblob[id]={blob:blob,set:$.extend({},rec.set),time:time};
+			batCall&&batCall();
+		},function(s){
+			// reclog("失败："+s);
+			batCall&&batCall();
+		});
+  };
+  if(rec){
+		rec.close(function(){
+			// reclog("已关闭");
+		});
+	}
+};
+
+function recdown64(blob){
+	var reader = new FileReader();
+	reader.onloadend = function() {
+		console.log(reader.result);
+	};
+	reader.readAsDataURL(blob);
+};
+</script>
+
+
+<!-- end 结束copy源码 -->
+</body>
+</html>
